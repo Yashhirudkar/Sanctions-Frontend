@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.375rem; /* Precise, sharp corners */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-slate-200;
+  }
+  body {
+    @apply bg-[#F1F5F9] text-[#0F172A] font-sans antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom Typography & UI Polish */
+h1, h2, h3, h4 {
+  @apply tracking-tight font-semibold text-slate-900;
+}
+
+.text-xxs {
+  font-size: 0.65rem;
+  line-height: 1rem;
+}
+
+/* Sub-pixel Borders for Mature Feel */
+.border-subtle {
+  border-width: 0.5px;
+  @apply border-slate-200;
+}
+
+/* Scrollbar - Hidden but functional */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+/* Status Micro-Interactions */
+.active-nav-indicator {
+  @apply absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 bg-[#2A9433] rounded-r-full;
+}
+
+/* Data Table Precision */
+.data-table-header {
+  @apply bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-y border-slate-200/60;
+}
+
+.data-table-row:hover {
+  background-color: rgba(241, 245, 249, 0.5);
+}
