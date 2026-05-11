@@ -1,12 +1,37 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useAuth } from './AuthContext';
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
+
+  const isLoginPage = pathname === '/login';
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+          <p className="text-slate-400 font-medium animate-pulse">Initializing Security...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  if (!user) {
+    return null; // AuthProvider will handle redirect
+  }
 
   return (
     <div className="flex h-full overflow-hidden bg-slate-50">
@@ -54,3 +79,4 @@ export default function DashboardLayout({ children }) {
     </div>
   );
 }
+

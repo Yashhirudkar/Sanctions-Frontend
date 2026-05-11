@@ -23,7 +23,7 @@ module.exports = {
           950: '#020617', // Sidebar / Dark areas
         },
         action: {
-          primary: '#2563eb',   // Professional Blue
+          primary: '#2a9433',   // Professional Green theme color
           secondary: '#6366f1', // Indigo Accent
           success: '#10b981',   // Emerald
           warning: '#f59e0b',   // Amber

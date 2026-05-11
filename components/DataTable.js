@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Search,
   Filter,
   Download,
   MoreVertical,
   ArrowUpRight,
   Database,
-  ArrowDown
+  ArrowDown,
+  X
 } from 'lucide-react';
 import DetailsModal from './DetailsModal';
 import { cn } from '@/lib/utils';
@@ -20,11 +21,13 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit] = useState(12);
+  const [limit] = useState(10);
   const [search, setSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
   const fetchData = async () => {
@@ -33,8 +36,8 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
       const offset = (page - 1) * limit;
       const separator = endpoint.includes('?') ? '&' : '?';
       let url = `${API_BASE}${endpoint}${separator}limit=${limit}&offset=${offset}`;
-      if (search) url += `&name=${encodeURIComponent(search)}`;
-      
+      if (debouncedSearch) url += `&name=${encodeURIComponent(debouncedSearch)}`;
+
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch data');
       const json = await res.json();
@@ -47,14 +50,32 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
     }
   };
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch data when page, endpoint, or debounced search changes
   useEffect(() => {
     fetchData();
-  }, [page, endpoint]);
+  }, [page, endpoint, debouncedSearch]);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // No need to manually fetch, the useEffect on debouncedSearch will handle it
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
     setPage(1);
-    fetchData();
   };
 
   const totalPages = Math.max(1, Math.ceil(count / limit));
@@ -67,33 +88,50 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
           <p className="text-xs font-medium text-slate-500 mt-0.5">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* CSV Export Button Removed */}
+          {search && (
+            <button
+              onClick={handleClearFilters}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-bold transition-all border border-rose-200 shadow-sm"
+            >
+              <X className="h-3 w-3" />
+              CLEAR FILTERS
+            </button>
+          )}
         </div>
       </div>
 
       <div className="bg-white rounded border border-slate-200/80 shadow-sm overflow-hidden">
         {/* Compact Table Toolbar */}
-        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row gap-4 justify-between items-center">
-          <form onSubmit={handleSearch} className="relative w-full sm:max-w-xs">
-            <Search className="absolute inset-y-0 left-2.5 h-full w-3.5 text-slate-400 pointer-events-none" />
+        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <form onSubmit={handleSearch} className="relative w-full sm:max-w-xs group">
+            <Search className="absolute inset-y-0 left-3 h-full w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
             <input
               type="text"
-              className="block w-full rounded border-slate-200 bg-white py-1.5 pl-9 pr-3 text-[12px] font-medium text-slate-900 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400"
-              placeholder="Filter by identifier..."
+              className="block w-full  py-1.5 pl-10 pr-10 text-[13px] font-medium border border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400  hover:border-slate-400"
+              placeholder="Filter records by name or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="absolute inset-y-0 right-3 flex items-center h-full text-slate-400 hover:text-rose-500 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </form>
           <div className="flex items-center gap-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-             <div className="flex items-center gap-1.5">
-                <Filter className="h-3.5 w-3.5 text-slate-300" />
-                <span>Advanced View</span>
-             </div>
-             <div className="h-3 w-px bg-slate-200" />
-             <div className="flex items-center gap-1.5 text-blue-600">
-                <Database className="h-3.5 w-3.5" />
-                <span>Node Count: {count.toLocaleString()}</span>
-             </div>
+            <div className="flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 text-slate-300" />
+              <span>Advanced View</span>
+            </div>
+            <div className="h-3 w-px bg-slate-200" />
+            <div className="flex items-center gap-1.5 text-blue-600">
+              <Database className="h-3.5 w-3.5" />
+              <span>Total Count: {count.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
@@ -105,8 +143,8 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
                 {columns.map((col) => (
                   <th key={col.key} className={cn("px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200/60", col.key === 'action' ? "text-center" : "text-left")}>
                     <div className={cn("flex items-center gap-1", col.key === 'action' ? "justify-center" : "justify-start")}>
-                        {col.label}
-                        {col.key !== 'action' && <ArrowDown className="h-2.5 w-2.5 text-slate-300" />}
+                      {col.label}
+                      {col.key !== 'action' && <ArrowDown className="h-2.5 w-2.5 text-slate-300" />}
                     </div>
                   </th>
                 ))}
@@ -132,7 +170,7 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
                       <td key={col.key} className={cn("px-4 py-3.5 text-[12.5px] font-medium text-slate-600 leading-tight", col.key === 'action' ? "text-center" : "text-left")}>
                         {col.key === 'action' ? (
                           <div className="flex justify-center gap-1">
-                            <button 
+                            <button
                               onClick={() => {
                                 setSelectedItem(item);
                                 setIsModalOpen(true);
@@ -148,7 +186,7 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
                     {!columns.find(c => c.key === 'action' || c.key === 'actions') && (
                       <td className="px-4 py-3.5 text-center">
                         <div className="flex justify-center gap-1">
-                          <button 
+                          <button
                             onClick={() => {
                               setSelectedItem(item);
                               setIsModalOpen(true);
@@ -191,7 +229,7 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <div className="flex items-center px-3 text-[11px] font-black text-slate-600 tracking-widest">
-                PAGE {page} / {totalPages}
+              PAGE {page} / {totalPages}
             </div>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
@@ -204,10 +242,10 @@ export default function DataTable({ title, subtitle, endpoint, columns }) {
         </div>
       </div>
 
-      <DetailsModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        item={selectedItem} 
+      <DetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        item={selectedItem}
       />
     </div>
   );

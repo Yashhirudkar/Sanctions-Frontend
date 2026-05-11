@@ -16,6 +16,7 @@ import {
   User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from './AuthContext';
 
 const navigation = [
   { name: 'Analytics', href: '/', icon: BarChart3 },
@@ -33,6 +34,12 @@ const secondaryNavigation = [
 
 export default function Sidebar({ collapsed, onToggle, mobile }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  };
 
   return (
     <div className={cn(
@@ -46,14 +53,11 @@ export default function Sidebar({ collapsed, onToggle, mobile }) {
         collapsed ? "justify-center px-0" : "px-6"
       )}>
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded bg-[#2A9433] flex items-center justify-center shadow-lg shadow-[#2A9433]/20 shrink-0">
-            <Command className="h-4.5 w-4.5 text-white" />
-          </div>
-          {!collapsed && (
-            <span className="text-xs font-black tracking-[0.15em] text-slate-900 uppercase truncate">
-              Sanctions DB
-            </span>
-          )}
+          <img
+            src="/Sanctions%20Database.png"
+            alt="Sanctions Database"
+            className={cn("h-8 w-auto object-contain transition-all", collapsed && "mx-auto")}
+          />
         </div>
       </div>
 
@@ -117,14 +121,13 @@ export default function Sidebar({ collapsed, onToggle, mobile }) {
         )}>
           <div className="relative shrink-0">
             <div className="h-9 w-9 rounded bg-white flex items-center justify-center text-xs font-bold text-slate-600 border border-slate-200 shadow-sm">
-              AD
+              {getInitials(user?.full_name)}
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white"></span>
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="text-[11px] font-bold text-slate-900 truncate">Admin Operator</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Enterprise SaaS</span>
+              <span className="text-[11px] font-bold text-slate-900 truncate capitalize">{user?.full_name || 'Guest User'}</span>
             </div>
           )}
         </div>

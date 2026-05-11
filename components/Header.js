@@ -1,8 +1,18 @@
 'use client';
 
-import { Search, Bell, Menu, LayoutGrid, Clock, ShieldCheck } from 'lucide-react';
+import { Bell, Menu, Clock, LogOut, User } from 'lucide-react';
+import { useAuth } from './AuthContext';
+import { useState } from 'react';
 
 export default function Header({ onMenuClick }) {
+  const { user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  };
+
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-zinc-200 bg-white/80 backdrop-blur-md px-4 sm:gap-x-6 sm:px-6 lg:px-8 shadow-sm shadow-zinc-950/5">
       <button 
@@ -15,28 +25,10 @@ export default function Header({ onMenuClick }) {
       </button>
 
       <div className="flex flex-1 items-center gap-x-4 self-stretch lg:gap-x-6">
-
-        {/* <div className="h-4 w-px bg-zinc-200 hidden sm:block" aria-hidden="true" /> */}
-
-        {/* <form className="relative flex flex-1 max-w-sm" action="#" method="GET">
-          <label htmlFor="search-field" className="sr-only">Search database</label>
-          <Search
-            className="pointer-events-none absolute inset-y-0 left-0 h-full w-4 text-zinc-400"
-            aria-hidden="true"
-          />
-          <input
-            id="search-field"
-            className="block h-full w-full border-0 py-0 pl-7 pr-0 text-zinc-900 placeholder:text-zinc-400 focus:ring-0 text-[13px] font-medium"
-            placeholder="Search records, passports or names..."
-            type="search"
-            name="search"
-          />
-        </form> */}
-
         <div className="flex items-center gap-x-4 lg:gap-x-6 ml-auto">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded bg-zinc-50 border border-zinc-100">
             <Clock className="h-3.5 w-3.5 text-zinc-400" />
-            <span className="text-[11px] font-bold text-zinc-600">Last Sync: 12:44 UTC</span>
+            <span className="text-[11px] font-bold text-zinc-600">Last Sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC</span>
           </div>
 
           <button type="button" className="relative p-2 text-zinc-400 hover:text-zinc-900 transition-colors">
@@ -47,17 +39,38 @@ export default function Header({ onMenuClick }) {
 
           <div className="h-6 w-px bg-zinc-200" aria-hidden="true" />
 
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-end hidden md:flex">
-              <span className="text-[11px] font-bold text-zinc-900 leading-none">Global Compliance</span>
-              <span className="text-[10px] font-medium text-emerald-600 mt-1 uppercase tracking-tighter">Verified Session</span>
-            </div>
-            <div className="h-8 w-8 rounded bg-[#2A9433] flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-black/10">
-              SC
-            </div>
+          <div className="relative">
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-3 hover:bg-zinc-50 p-1 rounded-lg transition-colors"
+            >
+              <div className="flex flex-col items-end hidden md:flex">
+                <span className="text-[11px] font-bold text-zinc-900 leading-none capitalize">{user?.full_name || 'Guest User'}</span>
+                <span className="text-[10px] font-medium text-emerald-600 mt-1 uppercase tracking-tighter">Verified Session</span>
+              </div>
+              <div className="h-8 w-8 rounded bg-[#2a9433] flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-[#2a9433]/20">
+                {getInitials(user?.full_name)}
+              </div>
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-xl bg-white p-1 shadow-xl ring-1 ring-zinc-950/5 focus:outline-none animate-in fade-in zoom-in duration-100">
+                <div className="px-3 py-2 border-b border-zinc-100 mb-1">
+                  <p className="text-[11px] font-bold text-zinc-900 truncate">{user?.email}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-600 hover:bg-red-50 hover:text-red-600 transition-all"
+                >
+                  <LogOut className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </header>
   );
 }
+
